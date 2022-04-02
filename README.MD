@@ -20,7 +20,7 @@ func main() {
 		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
 		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
 	}
-	redirect, _ := gogram.New().Config(config).GetAuthorizeRedirect()
+	redirect, _ := gogram.NewGogram().Config(config).GetAuthorizeRedirect()
 
 	log.Printf(redirect)
 }
@@ -46,7 +46,7 @@ func main() {
 		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
 		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
 	}
-	response, _ := gogram.New().Config(config).GetAccessToken("Query('code')")
+	response, _ := gogram.NewGogram().Config(config).GetAccessToken("Query('code')")
 	var accessToken AccessToken
 	json.Unmarshal([]byte(response), &accessToken)
 
@@ -76,7 +76,7 @@ func main() {
 		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
 		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
 	}
-	response, _ := gogram.New().Config(config).GetUserProfile("Query('access_token')", []string{"id", "username"})
+	response, _ := gogram.NewGogram().Config(config).GetUserProfile("Query('access_token')", []string{"id", "username"})
 	var user User
 	json.Unmarshal([]byte(response), &user)
 

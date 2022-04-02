@@ -14,24 +14,24 @@ type Config struct {
 	RedirectUri  string
 }
 
-// Client is the main struct of the package
-type Client struct {
+// GogramClient is the main struct of the package
+type GogramClient struct {
 	config Config
 }
 
-func New() *Client {
-	return &Client{}
+func NewGogram() *GogramClient {
+	return &GogramClient{}
 }
 
 // Config is needed to success api work
-func (client *Client) Config(config Config) *Client {
+func (client *GogramClient) Config(config Config) *GogramClient {
 	client.config = config
 	return client
 }
 
 // GetAuthorizeRedirect
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions#step-1--get-authorization
-func (client *Client) GetAuthorizeRedirect() (string, error) {
+func (client *GogramClient) GetAuthorizeRedirect() (string, error) {
 	return "https://api.instagram.com/oauth/authorize" +
 		"?client_id=" + client.config.ClientId +
 		"&redirect_uri=" + client.config.RedirectUri +
@@ -41,7 +41,7 @@ func (client *Client) GetAuthorizeRedirect() (string, error) {
 
 // GetAccessToken
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions#step-2--exchange-the-code-for-a-token
-func (client *Client) GetAccessToken(code string) (string, error) {
+func (client *GogramClient) GetAccessToken(code string) (string, error) {
 	data := url.Values{
 		"client_id": {client.config.ClientId},
 		"client_secret": {client.config.ClientSecret},
@@ -70,7 +70,7 @@ func (client *Client) GetAccessToken(code string) (string, error) {
 // GetUserProfile
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-profiles-and-media#get-a-user-s-profile
 // https://developers.facebook.com/docs/instagram-basic-display-api/reference/user#fields
-func (client *Client) GetUserProfile(accessToken string, fields []string) (string, error) {
+func (client *GogramClient) GetUserProfile(accessToken string, fields []string) (string, error) {
 	f := strings.Join(fields, ",")
 
 	endpoint := "https://graph.instagram.com/me" +
@@ -97,7 +97,7 @@ func (client *Client) GetUserProfile(accessToken string, fields []string) (strin
 // GetUsersMedia
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-profiles-and-media#get-a-user-s-media
 // https://developers.facebook.com/docs/instagram-basic-display-api/reference/media#fields
-func (client *Client) GetUsersMedia(accessToken string, fields []string, nextPage ...string) (string, error) {
+func (client *GogramClient) GetUsersMedia(accessToken string, fields []string, nextPage ...string) (string, error) {
 	f := strings.Join(fields, ",")
 
 	endpoint := "https://graph.instagram.com/me/media" +
@@ -128,7 +128,7 @@ func (client *Client) GetUsersMedia(accessToken string, fields []string, nextPag
 // GetMediaData
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-profiles-and-media#get-media-data
 // https://developers.facebook.com/docs/instagram-basic-display-api/reference/media#fields
-func (client *Client) GetMediaData(mediaId int, accessToken string, fields []string) (string, error) {
+func (client *GogramClient) GetMediaData(mediaId int, accessToken string, fields []string) (string, error) {
 	f := strings.Join(fields, ",")
 
 	endpoint := "https://graph.instagram.com/" + strconv.Itoa(mediaId) +
@@ -155,7 +155,7 @@ func (client *Client) GetMediaData(mediaId int, accessToken string, fields []str
 // GetAlbumContents
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-profiles-and-media#get-album-contents
 // https://developers.facebook.com/docs/instagram-basic-display-api/reference/media#fields
-func (client *Client) GetAlbumContents(mediaId int, accessToken string, fields []string) (string, error) {
+func (client *GogramClient) GetAlbumContents(mediaId int, accessToken string, fields []string) (string, error) {
 	f := strings.Join(fields, ",")
 
 	endpoint := "https://graph.instagram.com/" + strconv.Itoa(mediaId) + "/children" +
@@ -181,7 +181,7 @@ func (client *Client) GetAlbumContents(mediaId int, accessToken string, fields [
 
 // GetLongLovedToken
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/long-lived-access-tokens#get-a-long-lived-token
-func (client *Client) GetLongLovedToken(shortLivedAccessToken string) (string, error) {
+func (client *GogramClient) GetLongLovedToken(shortLivedAccessToken string) (string, error) {
 	endpoint := "https://graph.instagram.com/access_token" +
 		"?grant_type=ig_exchange_token" +
 		"&client_secret=" + (client.config.ClientSecret) +
@@ -206,7 +206,7 @@ func (client *Client) GetLongLovedToken(shortLivedAccessToken string) (string, e
 
 // RefreshLongLivedToken
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/long-lived-access-tokens#refresh-a-long-lived-token
-func (client *Client) RefreshLongLivedToken(longLivedAccessToken string) (string, error) {
+func (client *GogramClient) RefreshLongLivedToken(longLivedAccessToken string) (string, error) {
 	endpoint := "https://graph.instagram.com/refresh_access_token" +
 		"?grant_type=ig_refresh_token" +
 		"&access_token=" + longLivedAccessToken
