@@ -1,4 +1,4 @@
-package go_instagram_basic_display_api
+package gogram
 
 import (
 	"io/ioutil"
