@@ -2,7 +2,7 @@
 Docs: [Instagram Basic Display API](https://developers.facebook.com/docs/instagram-basic-display-api)
 #### Installation
 ```shell
-go get github.com/rostyslavio/go-instagram-basic-display-api
+go get -u github.com/rostyslavio/go-instagram-basic-display-api
 ```
 ## Get Access Tokens and Permissions
 ### Step 1: Get Authorization
@@ -22,7 +22,7 @@ func main() {
 	}
 	redirect, _ := gogram.NewGogram().Config(config).GetAuthorizeRedirect()
 
-	log.Printf(redirect)
+	//log.Printf(redirect)
 }
 ```
 ### Step 2: Exchange the Code For a Token
@@ -46,11 +46,15 @@ func main() {
 		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
 		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
 	}
-	response, _ := gogram.NewGogram().Config(config).GetAccessToken("Query('code')")
+	response, err := gogram.NewGogram().Config(config).GetAccessToken("Query('code')")
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	var accessToken AccessToken
 	json.Unmarshal([]byte(response), &accessToken)
-
-	log.Printf(response)
+	
+	//log.Printf(response)
 }
 ```
 
@@ -76,10 +80,190 @@ func main() {
 		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
 		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
 	}
-	response, _ := gogram.NewGogram().Config(config).GetUserProfile("Query('access_token')", []string{"id", "username"})
+	response, err := gogram.NewGogram().Config(config).GetUserProfile("ACCESS_TOKEN", []string{"id", "username"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	var user User
 	json.Unmarshal([]byte(response), &user)
+	
+	// log.Printf(response)
+}
+```
+### Get a User’s Media
+```go
+package main
 
-	log.Printf(response)
+import (
+	"encoding/json"
+	gogram "github.com/rostyslavio/go-instagram-basic-display-api"
+	"log"
+)
+
+type MediaData struct {
+	Id string `json:"id"`
+	MediaType string `json:"media_type"`
+	MediaUrl string `json:"media_url"`
+	ThumbnailUrl *string `json:"thumbnail_url"`
+}
+
+type Medias struct {
+	Data []MediaData `json:"data"`
+}
+
+func main() {
+	config := gogram.Config{
+		ClientId: "INSTAGRAM_BASIC_DISPLAY_APP_ID",
+		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
+		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
+	}
+	accessToken := "ACCESS_TOKEN"
+	response, err := gogram.NewGogram().Config(config).GetUsersMedia(accessToken, []string{"id", "media_type", "media_url", "thumbnail_url"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	var medias Medias
+	json.Unmarshal([]byte(response), &medias)
+	
+	//s, _ := json.MarshalIndent(medias, "", "  ")
+	//log.Printf(string(s))
+}
+```
+
+### Get a User’s Media (Paging)
+```go
+
+type Paging struct {
+    Next string `json:"next"`
+}
+
+type Medias struct {
+	Data []MediaData `json:"data"`
+	Paging Paging `json:"paging"`
+}
+
+// ...
+nextPageEndpoint := "https://graph.instagram.com/v13.0/17841452138059464/media?access_token=ACCESS_TOKEN&fields=id%2Cmedia_type%2Cmedia_url%2Cthumbnail_url&limit=25&after=..."
+response, _ := gogram.NewGogram().Config(config).GetUsersMedia(
+	accessToken,
+	[]string{"id", "media_type", "media_url", "thumbnail_url"},
+	nextPageEndpoint,
+)
+```
+### Get Album Contents
+```go
+package main
+
+import (
+	"encoding/json"
+	gogram "github.com/rostyslavio/go-instagram-basic-display-api"
+	"log"
+)
+
+type MediaData struct {
+	Id string `json:"id"`
+	MediaType string `json:"media_type"`
+	MediaUrl string `json:"media_url"`
+	ThumbnailUrl *string `json:"thumbnail_url"`
+}
+
+type Album struct {
+	Data []MediaData `json:"data"`
+}
+
+func main() {
+	config := gogram.Config{
+		ClientId: "INSTAGRAM_BASIC_DISPLAY_APP_ID",
+		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
+		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
+	}
+	accessToken := "ACCESS_TOKEN"
+	response, err := gogram.NewGogram().Config(config).GetAlbumContents(
+		17909521286425942,
+		accessToken,
+		[]string{"id", "media_type", "media_url", "thumbnail_url"},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var album Album
+	json.Unmarshal([]byte(response), &album)
+	
+	//s, _ := json.MarshalIndent(album, "", "  ")
+	//log.Printf(string(s))
+}
+```
+## Long-Lived Access Tokens
+### Get a Long-Lived Token
+```go
+package main
+
+import (
+	"encoding/json"
+	gogram "github.com/rostyslavio/go-instagram-basic-display-api"
+	"log"
+)
+
+type LongLivedToken struct {
+	AccessToken string `json:"access_token"`
+	TokenType string `json:"token_type"`
+	ExpiresIn int `json:"expires_in"`
+}
+
+func main() {
+	config := gogram.Config{
+		ClientId: "INSTAGRAM_BASIC_DISPLAY_APP_ID",
+		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
+		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
+	}
+	shortLivedAccessToken := "ACCESS_TOKEN"
+	response, err := gogram.NewGogram().Config(config).GetLongLivedToken(shortLivedAccessToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var longLivedToken LongLivedToken
+	json.Unmarshal([]byte(response), &longLivedToken)
+	
+	//s, _ := json.MarshalIndent(longLivedToken, "", "  ")
+	//log.Printf(string(s))
+}
+```
+### Refresh a Long-Lived Token
+```go
+package main
+
+import (
+	"encoding/json"
+	gogram "github.com/rostyslavio/go-instagram-basic-display-api"
+	"log"
+)
+
+type LongLivedToken struct {
+	AccessToken string `json:"access_token"`
+	TokenType string `json:"token_type"`
+	ExpiresIn int `json:"expires_in"`
+}
+
+func main() {
+	config := gogram.Config{
+		ClientId: "INSTAGRAM_BASIC_DISPLAY_APP_ID",
+		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
+		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
+	}
+	longLivedAccessToken := "ACCESS_TOKEN"
+	response, err := gogram.NewGogram().Config(config).RefreshLongLivedToken(longLivedAccessToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var longLivedToken LongLivedToken
+	json.Unmarshal([]byte(response), &longLivedToken)
+	
+	//s, _ := json.MarshalIndent(longLivedToken, "", "  ")
+	//log.Printf(string(s))
 }
 ```
