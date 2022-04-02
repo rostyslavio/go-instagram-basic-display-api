@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-type Config struct {
-	ClientId     string
-	ClientSecret string
-	RedirectUri  string
-}
-
 // GogramClient is the main struct of the package
 type GogramClient struct {
 	config Config
