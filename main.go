@@ -173,9 +173,9 @@ func (client *GogramClient) GetAlbumContents(mediaId int, accessToken string, fi
 	return string(body), nil
 }
 
-// GetLongLovedToken
+// GetLongLivedToken
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/long-lived-access-tokens#get-a-long-lived-token
-func (client *GogramClient) GetLongLovedToken(shortLivedAccessToken string) (response string, err error) {
+func (client *GogramClient) GetLongLivedToken(shortLivedAccessToken string) (response string, err error) {
 	endpoint := fmt.Sprintf(longLivedTokenEndpoint, client.config.ClientSecret, shortLivedAccessToken)
 
 	resp, err := http.Get(endpoint)
