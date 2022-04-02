@@ -1,11 +1,23 @@
 package gogram
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+)
+
+const (
+	authorizeRedirect = "https://api.instagram.com/oauth/authorize?client_id=%s&redirect_uri=%s&scope=user_profile,user_media&response_type=code"
+	accessTokenEndpoint = "https://api.instagram.com/oauth/access_token"
+	userProfileEndpoint = "https://graph.instagram.com/me?fields=%s&access_token=%s"
+	usersMediaEndpoint = "https://graph.instagram.com/me/media?fields=%s&access_token=%s"
+	mediaDataEndpoint = "https://graph.instagram.com/%s?fields=%s&access_token=%s"
+	albumContentsEndpoint = "https://graph.instagram.com/%s/children?fields=%s&access_token=%s"
+	longLivedTokenEndpoint = "https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=%s&access_token=%s"
+	refreshLongLivedTokenEndpoint = "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=%s"
 )
 
 // GogramClient is the main struct of the package
@@ -26,11 +38,7 @@ func (client *GogramClient) Config(config Config) *GogramClient {
 // GetAuthorizeRedirect
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions#step-1--get-authorization
 func (client *GogramClient) GetAuthorizeRedirect() (uri string, err error) {
-	return "https://api.instagram.com/oauth/authorize" +
-		"?client_id=" + client.config.ClientId +
-		"&redirect_uri=" + client.config.RedirectUri +
-		"&scope=user_profile,user_media" +
-		"&response_type=code", nil
+	return fmt.Sprintf(authorizeRedirect, client.config.ClientId, client.config.RedirectUri), nil
 }
 
 // GetAccessToken
@@ -44,7 +52,7 @@ func (client *GogramClient) GetAccessToken(code string) (response string, err er
 		"redirect_uri": {client.config.RedirectUri},
 	}
 
-	res, err := http.PostForm("https://api.instagram.com/oauth/access_token", data)
+	res, err := http.PostForm(accessTokenEndpoint, data)
 
 	if err != nil {
 		return "", err
@@ -67,9 +75,7 @@ func (client *GogramClient) GetAccessToken(code string) (response string, err er
 func (client *GogramClient) GetUserProfile(accessToken string, fields []string) (response string, err error) {
 	f := strings.Join(fields, ",")
 
-	endpoint := "https://graph.instagram.com/me" +
-		"?fields=" + f +
-		"&access_token=" + accessToken
+	endpoint := fmt.Sprintf(userProfileEndpoint, f, accessToken)
 
 	resp, err := http.Get(endpoint)
 
@@ -94,9 +100,7 @@ func (client *GogramClient) GetUserProfile(accessToken string, fields []string) 
 func (client *GogramClient) GetUsersMedia(accessToken string, fields []string, nextPage ...string) (response string, err error) {
 	f := strings.Join(fields, ",")
 
-	endpoint := "https://graph.instagram.com/me/media" +
-		"?fields=" + f +
-		"&access_token=" + accessToken
+	endpoint := fmt.Sprintf(usersMediaEndpoint, f, accessToken)
 
 	if len(nextPage) > 0 {
 		endpoint = nextPage[0]
@@ -125,9 +129,7 @@ func (client *GogramClient) GetUsersMedia(accessToken string, fields []string, n
 func (client *GogramClient) GetMediaData(mediaId int, accessToken string, fields []string) (response string, err error) {
 	f := strings.Join(fields, ",")
 
-	endpoint := "https://graph.instagram.com/" + strconv.Itoa(mediaId) +
-		"?fields=" + f +
-		"&access_token=" + accessToken
+	endpoint := fmt.Sprintf(mediaDataEndpoint, strconv.Itoa(mediaId), f, accessToken)
 
 	resp, err := http.Get(endpoint)
 
@@ -152,9 +154,7 @@ func (client *GogramClient) GetMediaData(mediaId int, accessToken string, fields
 func (client *GogramClient) GetAlbumContents(mediaId int, accessToken string, fields []string) (response string, err error) {
 	f := strings.Join(fields, ",")
 
-	endpoint := "https://graph.instagram.com/" + strconv.Itoa(mediaId) + "/children" +
-		"?fields=" + f +
-		"&access_token=" + accessToken
+	endpoint := fmt.Sprintf(albumContentsEndpoint, strconv.Itoa(mediaId), f, accessToken)
 
 	resp, err := http.Get(endpoint)
 
@@ -176,10 +176,7 @@ func (client *GogramClient) GetAlbumContents(mediaId int, accessToken string, fi
 // GetLongLovedToken
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/long-lived-access-tokens#get-a-long-lived-token
 func (client *GogramClient) GetLongLovedToken(shortLivedAccessToken string) (response string, err error) {
-	endpoint := "https://graph.instagram.com/access_token" +
-		"?grant_type=ig_exchange_token" +
-		"&client_secret=" + (client.config.ClientSecret) +
-		"&access_token=" + shortLivedAccessToken
+	endpoint := fmt.Sprintf(longLivedTokenEndpoint, client.config.ClientSecret, shortLivedAccessToken)
 
 	resp, err := http.Get(endpoint)
 
@@ -201,9 +198,7 @@ func (client *GogramClient) GetLongLovedToken(shortLivedAccessToken string) (res
 // RefreshLongLivedToken
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/long-lived-access-tokens#refresh-a-long-lived-token
 func (client *GogramClient) RefreshLongLivedToken(longLivedAccessToken string) (response string, err error) {
-	endpoint := "https://graph.instagram.com/refresh_access_token" +
-		"?grant_type=ig_refresh_token" +
-		"&access_token=" + longLivedAccessToken
+	endpoint := fmt.Sprintf(refreshLongLivedTokenEndpoint, longLivedAccessToken)
 
 	resp, err := http.Get(endpoint)
 
