@@ -134,23 +134,56 @@ func main() {
 
 ### Get a User’s Media (Paging)
 ```go
+package main
 
-type Paging struct {
-    Next string `json:"next"`
+import (
+	"encoding/json"
+	gogram "github.com/rostyslavio/go-instagram-basic-display-api"
+	"log"
+)
+
+type MediaData struct {
+	Id           string  `json:"id"`
+	MediaType    string  `json:"media_type"`
+	MediaUrl     string  `json:"media_url"`
+	ThumbnailUrl string `json:"thumbnail_url"`
 }
 
 type Medias struct {
-	Data []MediaData `json:"data"`
-	Paging Paging `json:"paging"`
+	Data   []MediaData `json:"data"`
+	Paging Paging      `json:"paging"`
 }
 
-// ...
-nextPageEndpoint := "https://graph.instagram.com/v13.0/17841452138059464/media?access_token=ACCESS_TOKEN&fields=id%2Cmedia_type%2Cmedia_url%2Cthumbnail_url&limit=25&after=..."
-response, _ := gogram.NewGogram().Config(config).GetUsersMedia(
-	accessToken,
-	[]string{"id", "media_type", "media_url", "thumbnail_url"},
-	nextPageEndpoint,
-)
+type Paging struct {
+	gogram.Next `json:"next"`
+}
+
+func main() {
+	config := gogram.Config{
+		ClientId: "INSTAGRAM_BASIC_DISPLAY_APP_ID",
+		ClientSecret: "INSTAGRAM_BASIC_DISPLAY_APP_SECRET",
+		RedirectUri: "INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI",
+	}
+	accessToken := "ACCESS_TOKEN"
+	response, err := gogram.NewGogram().Config(config).GetUsersMedia(accessToken, []string{"id", "media_type", "media_url", "thumbnail_url"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var medias Medias
+	json.Unmarshal([]byte(response), &medias)
+
+	// Get next page
+	response, err = medias.Paging.Next.GetUsersMedia()
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	json.Unmarshal([]byte(response), &medias)
+
+	// s, _ := json.MarshalIndent(medias, "", "  ")
+	// log.Print(string(s))
+}
 ```
 ### Get Album Contents
 ```go
