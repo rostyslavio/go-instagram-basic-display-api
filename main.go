@@ -122,8 +122,7 @@ func (client *GogramClient) GetUsersMedia(accessToken string, fields []string) (
 // Next type for paging
 type Next string
 
-// GetUsersMedia (Alternate)
-// https://developers.facebook.com/docs/instagram-basic-display-api/reference/user/media
+// GetUsersMedia (Paging)
 func (endpoint Next) GetUsersMedia() (response string, err error) {
 	resp, err := http.Get(string(endpoint))
 
