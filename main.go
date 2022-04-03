@@ -97,16 +97,35 @@ func (client *GogramClient) GetUserProfile(accessToken string, fields []string) 
 // GetUsersMedia
 // https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-profiles-and-media#get-a-user-s-media
 // https://developers.facebook.com/docs/instagram-basic-display-api/reference/media#fields
-func (client *GogramClient) GetUsersMedia(accessToken string, fields []string, nextPage ...string) (response string, err error) {
+func (client *GogramClient) GetUsersMedia(accessToken string, fields []string) (response string, err error) {
 	f := strings.Join(fields, ",")
 
 	endpoint := fmt.Sprintf(usersMediaEndpoint, f, accessToken)
 
-	if len(nextPage) > 0 {
-		endpoint = nextPage[0]
+	resp, err := http.Get(endpoint)
+
+	if err != nil {
+		return "", err
 	}
 
-	resp, err := http.Get(endpoint)
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
+}
+
+// Next type for paging
+type Next string
+
+// GetUsersMedia (Alternate)
+// https://developers.facebook.com/docs/instagram-basic-display-api/reference/user/media
+func (endpoint Next) GetUsersMedia() (response string, err error) {
+	resp, err := http.Get(string(endpoint))
 
 	if err != nil {
 		return "", err
