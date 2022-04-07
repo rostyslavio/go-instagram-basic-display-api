@@ -241,6 +241,8 @@ func (client *GogramClient) RefreshLongLivedToken(longLivedAccessToken string) (
 
 // ParseSignedRequest
 // https://developers.facebook.com/docs/games/gamesonfacebook/login#parsingsr
+// https://developers.facebook.com/docs/instagram-basic-display-api/getting-started#deauthorize-callback-url
+// https://developers.facebook.com/docs/instagram-basic-display-api/getting-started#data-deletion-request-callback-url
 func (client *GogramClient) ParseSignedRequest(sr string) (response string, err error) {
 	s := strings.Split(sr, ".")
 	encodedSig := s[0]
