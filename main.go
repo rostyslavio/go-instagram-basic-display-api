@@ -1,6 +1,10 @@
 package gogram
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -233,4 +237,38 @@ func (client *GogramClient) RefreshLongLivedToken(longLivedAccessToken string) (
 	}
 
 	return string(body), nil
+}
+
+// ParseSignedRequest
+// https://developers.facebook.com/docs/games/gamesonfacebook/login#parsingsr
+func (client *GogramClient) ParseSignedRequest(sr string) (response string, err error) {
+	s := strings.Split(sr, ".")
+	encodedSig := s[0]
+	encodedData := s[1]
+
+	// decode signature
+	sig, err := base64.RawURLEncoding.DecodeString(encodedSig)
+	if err != nil {
+		return "", err
+	}
+
+	// decode data
+	data, err := base64.RawURLEncoding.DecodeString(encodedData)
+	if err != nil {
+		return "", err
+	}
+
+	// confirm the signature
+	if isValid := ValidMAC([]byte(encodedData), sig, []byte(client.config.ClientSecret)); isValid == false {
+		return "", errors.New("Bad signed JSON signature!")
+	}
+
+	return string(data), nil
+}
+
+func ValidMAC(message, messageMAC, key []byte) bool {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+	expectedMAC := mac.Sum(nil)
+	return hmac.Equal(messageMAC, expectedMAC)
 }
