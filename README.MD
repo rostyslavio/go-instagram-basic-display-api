@@ -300,3 +300,37 @@ func main() {
 	//log.Printf(string(s))
 }
 ```
+## Deauthorize & Data Deletion Requests
+### Using a Signed Request
+```go
+app.Post("/instagram/deauthorize", instagram.Logout())
+app.Post("/instagram/deletion", instagram.Logout())
+...
+
+type SignedRequest struct {
+    SignedRequest string `json:"signed_request" xml:"signed_request" form:"signed_request"`
+}
+
+func Logout() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// parse body
+		sr := new(SignedRequest)
+
+		if err := c.BodyParser(sr); err != nil {
+			return err
+		}
+
+		// parse signed request
+		config := gogram.Config{
+			ClientId: src.Getenv("INSTAGRAM_BASIC_DISPLAY_APP_ID"),
+			ClientSecret: src.Getenv("INSTAGRAM_BASIC_DISPLAY_APP_SECRET"),
+			RedirectUri: src.Getenv("INSTAGRAM_BASIC_DISPLAY_REDIRECT_URI"),
+		}
+		data, _ := gogram.NewGogram().Config(config).ParseSignedRequest(sr.SignedRequest)
+
+		// fmt.Println(data)
+
+		return c.SendString("ok")
+	}
+}
+```
